@@ -26,6 +26,10 @@ import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 
 /**
+ * 建造者模式
+ *
+ * 构建 {@link SqlSessionFactory} 实例
+ *
  * Builds {@link SqlSession} instances.
  *
  * @author Clinton Begin
@@ -44,8 +48,16 @@ public class SqlSessionFactoryBuilder {
     return build(reader, null, properties);
   }
 
+  /**
+   *
+   * @param reader 配置文件Reader对象
+   * @param environment environment id，用于配置事务管理和数据源，覆盖配置文件<environment />节点
+   * @param properties 自定义属性：覆盖配置文件的<properties />节点
+   * @return SqlSessionFactory instance
+   */
   public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
     try {
+      // 创建 XMLConfigBuilder 对象，用于解析 mybatis-config.xml 配置文件
       XMLConfigBuilder parser = new XMLConfigBuilder(reader, environment, properties);
       return build(parser.parse());
     } catch (Exception e) {

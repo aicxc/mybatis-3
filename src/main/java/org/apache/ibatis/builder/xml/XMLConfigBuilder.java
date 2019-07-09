@@ -47,14 +47,28 @@ import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.type.JdbcType;
 
 /**
+ * 负责把 Mybatis-config.xml 配置文件解析成 Configuration 对象
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
+  /**
+   * 是否已经解析，用于防止多次（重复）解析
+   */
   private boolean parsed;
+  /**
+   * xpath解析器
+   */
   private final XPathParser parser;
+  /**
+   * 环境id, 默认为 development
+   */
   private String environment;
+  /**
+   * 反射工厂对象
+   */
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
   public XMLConfigBuilder(Reader reader) {
@@ -82,40 +96,67 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
+    // 实例化 Configuration 对象, 初始化部分类型别名
     super(new Configuration());
     ErrorContext.instance().resource("SQL Mapper Configuration");
+    // 设置属性 properties
     this.configuration.setVariables(props);
     this.parsed = false;
     this.environment = environment;
+    // new XPathParser(reader, true, props, new XMLMapperEntityResolver()
     this.parser = parser;
   }
 
+  /**
+   * 将配置文件 XML 解析成 Configuration 对象
+   * @return Configuration instance
+   */
   public Configuration parse() {
+    // 重复解析则抛出异常
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // 解析配合文件 <configuration /> 节点
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
+  /**
+   * 解析 XML 各个节点,配置文件： <a href = http://www.mybatis.org/mybatis-3/zh/configuration.html />
+   * @param root root节点，其实就是 <configuration />节点
+   */
   private void parseConfiguration(XNode root) {
     try {
       //issue #117 read properties first
+      // 解析 <properties /> 节点
       propertiesElement(root.evalNode("properties"));
+      // 解析 <settings /> 节点
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 根据配置信息加载自定义VFS实现类
       loadCustomVfs(settings);
+      // 根据配置信息加载日志实现类
       loadCustomLogImpl(settings);
+      // 解析 <typeAliases /> 节点
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 解析 <plugins /> 插件节点
       pluginElement(root.evalNode("plugins"));
+      // 解析 <objectFactory /> 对象工厂节点，对象工厂主要用于数据库结果集和POJO之间的转换
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 解析 <objectWrapperFactory /> 对象包装工厂
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析 <reflectorFactory /> 反射工厂
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+      // 设置 <settings /> 属性到 Configuration 对象中
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 解析 <environments /> 节点
       environmentsElement(root.evalNode("environments"));
+      // 解析 <databaseIdProvider /> 节点
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 解析 <typeHandlers /> 类型处理节点，该节点主要定义了 JavaType和JDBCType之间的转换规则
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 解析 <mappers /> 节点，该节点主要定义了 mapper.xml 文件的路径
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);

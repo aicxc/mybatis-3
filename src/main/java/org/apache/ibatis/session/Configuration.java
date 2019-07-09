@@ -95,44 +95,123 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * mybatis.xml 配置对象
+ *
  * @author Clinton Begin
  */
 public class Configuration {
 
+  /**
+   * 主要是DB环境，包括事务管理、数据源
+   */
   protected Environment environment;
 
+  /**
+   * 允许在嵌套语句中使用分页, if allow, set False
+   */
   protected boolean safeRowBoundsEnabled;
+  /**
+   * 允许在嵌套语句中使用分页
+   */
   protected boolean safeResultHandlerEnabled = true;
   protected boolean mapUnderscoreToCamelCase;
+  /**
+   * 当开启时，任何方法的调用都会加载该对象的所有属性。否则，每个属性会按需加载（参考lazyLoadTriggerMethods)
+   */
   protected boolean aggressiveLazyLoading;
+  /**
+   * 是否允许返回多结果集，如存储过程可能会返回多结果集
+   */
   protected boolean multipleResultSetsEnabled = true;
+  /**
+   * 往数据库添加记录时是否自动生成主键（如果允许的话，如MySQL）
+   */
   protected boolean useGeneratedKeys;
+  /**
+   * 是否使用列标签从结果集获取数据
+   */
   protected boolean useColumnLabel = true;
+  /**
+   * 全局缓存开关
+   */
   protected boolean cacheEnabled = true;
+  /**
+   * 结果集为Null，是否要将NUll设置到返回结果中
+   */
   protected boolean callSettersOnNulls;
+  /**
+   * 是否真实参数名
+   * True: @Param("userName")String name -> select * from user where name = #{userName}
+   * False: select * from user where name = #{arg0}   { arg0 -> argn}
+   *
+   */
   protected boolean useActualParamName = true;
+  /**
+   * 结果集为空，返回instance还是Null
+   */
   protected boolean returnInstanceForEmptyRow;
 
   protected String logPrefix;
   protected Class<? extends Log> logImpl;
+  /**
+   * VFS 实现类
+   */
   protected Class<? extends VFS> vfsImpl;
+  /**
+   * {@link org.apache.ibatis.executor.BaseExecutor}
+   *
+   * 本地缓存范围：Session | Statement
+   */
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
+  /**
+   * 处罚延时加载的内置方法
+   */
   protected Set<String> lazyLoadTriggerMethods = new HashSet<>(Arrays.asList("equals", "clone", "hashCode", "toString"));
+  /**
+   * 数据库执行SQL的超市时间
+   */
   protected Integer defaultStatementTimeout;
+  /**
+   * 一次最多查询的记录条数
+   */
   protected Integer defaultFetchSize;
+  /**
+   * 执行器类型：SIMPLE, REUSE, BATCH
+   */
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+  /**
+   * 自动映射的行为： NONE, PARTIAL, FULL
+   */
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
-
+  /**
+   * 主要是 mybatis-config.xml <properties /> 节点的配置信息
+   * 可以从外部文件引入，也可以从方法直接传参设置
+   */
   protected Properties variables = new Properties();
+  /**
+   * ReflectorFactory 对象
+   */
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+  /**
+   * ObjectFactory 对象
+   */
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+  /**
+   * ObjectWrapperFactory 对象
+   */
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
+  /**
+   * 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置fetchType属性来覆盖该项的开关状态。
+   */
   protected boolean lazyLoadingEnabled = false;
   protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
+  /**
+   * 数据库标识
+   */
   protected String databaseId;
   /**
    * Configuration factory class.
@@ -142,12 +221,30 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+  /**
+   * MapperRegistry 对象，注册 Mapper.xml
+   */
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+  /**
+   * 拦截器链，对应配置文件中的plugins
+   */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+  /**
+   * 类型注册器，JavaType 和 JdbcType 之间的转换处理器
+   */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+  /**
+   * 别名注册器，如 com.pojo.user -> user
+   */
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  /**
+   * 语言驱动注册器，暂时不知道有啥用
+   */
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  /**
+   * MappedStatement 映射器
+   */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
@@ -176,6 +273,10 @@ public class Configuration {
     this.environment = environment;
   }
 
+  /**
+   * 注册类型别名
+   * 注册语言驱动
+   */
   public Configuration() {
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);
