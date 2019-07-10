@@ -39,6 +39,9 @@ public class TypeAliasRegistry {
 
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
 
+  /**
+   * 初始化时注册数据类型的别名
+   */
   public TypeAliasRegistry() {
     registerAlias("string", String.class);
 

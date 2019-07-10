@@ -48,6 +48,7 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ReuseExecutor;
 import org.apache.ibatis.executor.SimpleExecutor;
 import org.apache.ibatis.executor.keygen.KeyGenerator;
+import org.apache.ibatis.executor.keygen.SelectKeyGenerator;
 import org.apache.ibatis.executor.loader.ProxyFactory;
 import org.apache.ibatis.executor.loader.cglib.CglibProxyFactory;
 import org.apache.ibatis.executor.loader.javassist.JavassistProxyFactory;
@@ -192,6 +193,7 @@ public class Configuration {
   protected Properties variables = new Properties();
   /**
    * ReflectorFactory 对象
+   * 1.检验 <settings /> 子节点的配置在configuration中是否有setter方法
    */
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
   /**
@@ -244,27 +246,72 @@ public class Configuration {
 
   /**
    * MappedStatement 映射器
+   *
+   * KEY:'${namespace}.${id}'
    */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+  /**
+   * Cache集合
+   *
+   * KEY：‘${namespace}’
+   */
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
+  /**
+   * resultMap集合
+   *
+   * KEY：'${namespace}.${id}'
+   */
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
+  /**
+   * 已废弃
+   */
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
+  /**
+   * KeyGenerator 的映射
+   *
+   * KEY：在 {@link #mappedStatements} 的 KEY 的基础上，跟上 {@link SelectKeyGenerator#SELECT_KEY_SUFFIX}
+   */
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+  /**
+   * 已加载资源Resource集合
+   */
   protected final Set<String> loadedResources = new HashSet<>();
+  /**
+   * sql片段，可重用
+   *
+   * 如：<sql id='columns'>username, age, birthday </sql>
+   */
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+  /**
+   * 未完成的 XMLStatementBuilder 集合
+   */
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
+  /**
+   * 未完成的 CacheRefResolver 集合
+   */
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
+  /**
+   * 未完成的 ResultMapResolver 集合
+   */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+  /**
+   * 未完成的 MethodResolver 集合
+   */
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /*
    * A map holds cache-ref relationship. The key is the namespace that
    * references a cache bound to another namespace and the value is the
    * namespace which the actual cache is bound to.
+   *
+   * 缓存引用
+   * KEY: namespace
+   * Value: ref namespace
+   *
    */
   protected final Map<String, String> cacheRefMap = new HashMap<>();
 
