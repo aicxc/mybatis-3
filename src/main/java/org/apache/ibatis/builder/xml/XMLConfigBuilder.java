@@ -497,9 +497,11 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void typeHandlerElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        // 如果是 package 节点，则扫描包下的 TypeHandler 并注册
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
+          // 如果是 typeHandler 节点，则注册该 TypeHandler
         } else {
           String javaTypeName = child.getStringAttribute("javaType");
           String jdbcTypeName = child.getStringAttribute("jdbcType");
@@ -507,6 +509,7 @@ public class XMLConfigBuilder extends BaseBuilder {
           Class<?> javaTypeClass = resolveClass(javaTypeName);
           JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
+          // 注册 TypeHandler
           if (javaTypeClass != null) {
             if (jdbcType == null) {
               typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
