@@ -96,7 +96,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
- * mybatis.xml 配置对象
+ * 全局配置类：mybatis-config.xml 配置类
  *
  * @author Clinton Begin
  */
@@ -321,8 +321,8 @@ public class Configuration {
   }
 
   /**
-   * 注册类型别名
-   * 注册语言驱动
+   * 注册 别名
+   * 注册 语言驱动
    */
   public Configuration() {
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
@@ -999,14 +999,25 @@ public class Configuration {
   }
 
   // Slow but a one time cost. A better solution is welcome.
+
+  /**
+   * 如果一个ResultMap有内嵌的ResultMap，如果另一个ResultMap中的Discriminator（鉴别器）中
+   * 引用了这个ResultMap，则这个ResultMap也属于有内嵌的ResultMap
+   *
+   * @param rm ResultMap 对象
+   */
   protected void checkGloballyForDiscriminatedNestedResultMaps(ResultMap rm) {
+    // ResultMap有内嵌的ResultMap
     if (rm.hasNestedResultMaps()) {
+      // 遍历所有resultMaps
       for (Map.Entry<String, ResultMap> entry : resultMaps.entrySet()) {
         Object value = entry.getValue();
         if (value instanceof ResultMap) {
           ResultMap entryResultMap = (ResultMap) value;
+          // 如果没有内嵌ResultMap，但有Discriminator
           if (!entryResultMap.hasNestedResultMaps() && entryResultMap.getDiscriminator() != null) {
             Collection<String> discriminatedResultMapNames = entryResultMap.getDiscriminator().getDiscriminatorMap().values();
+            // 如果Discriminator中引用了有内嵌的resultMap，则标志改resultMap也是内嵌的
             if (discriminatedResultMapNames.contains(rm.getId())) {
               entryResultMap.forceNestedResultMaps();
             }
@@ -1017,11 +1028,22 @@ public class Configuration {
   }
 
   // Slow but a one time cost. A better solution is welcome.
+
+  /**
+   * 判断一个含有Discriminator的ResultMap是否有内嵌reulstMap
+   * 如果一个ResultMap没有内嵌的子ResultMap，但其包含的Discriminator中引用了内嵌的ResultMap,则该ResultMap也是内嵌的
+   * 与 {@link #checkGloballyForDiscriminatedNestedResultMaps(ResultMap)} 互补
+   *
+   * @param rm resultMap
+   */
   protected void checkLocallyForDiscriminatedNestedResultMaps(ResultMap rm) {
+    // 传入的ResultMap没有内嵌的子ResultMap，但是有Discriminator
     if (!rm.hasNestedResultMaps() && rm.getDiscriminator() != null) {
+      // 遍历Discriminator的resultMap集合
       for (Map.Entry<String, String> entry : rm.getDiscriminator().getDiscriminatorMap().entrySet()) {
         String discriminatedResultMapName = entry.getValue();
         if (hasResultMap(discriminatedResultMapName)) {
+          // 如果引用的 ResultMap 存在内嵌 ResultMap ，则标记传入的 ResultMap 存在内嵌 ResultMap
           ResultMap discriminatedResultMap = resultMaps.get(discriminatedResultMapName);
           if (discriminatedResultMap.hasNestedResultMaps()) {
             rm.forceNestedResultMaps();

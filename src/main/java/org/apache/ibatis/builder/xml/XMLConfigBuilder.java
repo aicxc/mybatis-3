@@ -63,7 +63,7 @@ public class XMLConfigBuilder extends BaseBuilder {
    */
   private final XPathParser parser;
   /**
-   * 环境id, 默认为 development
+   * 环境id, default = 'development'
    */
   private String environment;
   /**
@@ -491,6 +491,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   /**
    * 类型处理器，负责JavaType和JdbcType之间的转换
+   * {@link org.apache.ibatis.type.TypeHandlerRegistry}
    *
    * @param parent 节点
    */
@@ -524,18 +525,28 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * ★ 解析 mappers 节点
+   *
+   * @param parent mapper 节点
+   * @throws Exception 异常
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历子节点
       for (XNode child : parent.getChildren()) {
+        // <package name="*" /> 扫描包路径下的 mapper 文件
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else {
+          // 单个mapper文件的处理，resource、url、class三者只能同时存在一个
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
+            // 读取资源文件
             InputStream inputStream = Resources.getResourceAsStream(resource);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
