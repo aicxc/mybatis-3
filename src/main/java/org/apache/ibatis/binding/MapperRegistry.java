@@ -27,13 +27,23 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * Mapper文件注册对象
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
 public class MapperRegistry {
 
+  /**
+   * 全局配置对象
+   */
   private final Configuration config;
+  /**
+   * MapperProxyFactory 的映射
+   *
+   * KEY：Mapper 接口 ，参考 namespace
+   */
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -42,36 +52,53 @@ public class MapperRegistry {
 
   @SuppressWarnings("unchecked")
   public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+    // 获取MapperProxyFactory对象
     final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
     if (mapperProxyFactory == null) {
       throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
     }
     try {
+      // 返回Mapper的代理对象
       return mapperProxyFactory.newInstance(sqlSession);
     } catch (Exception e) {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);
     }
   }
 
+  /**
+   * 是否有改Mapper
+   */
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
 
+  /**
+   * ★ 添加Mapper接口到 knownMappers
+   *    解析Map普洱接口的注解
+   */
   public <T> void addMapper(Class<T> type) {
+    // 接口
     if (type.isInterface()) {
+      // 已存在，抛出异常
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
+      // 加载结果标记
       boolean loadCompleted = false;
       try {
+        // 添加到 knownMappers 中
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+
+        // 主要用来解析 Mapper 接口中的注解，如 @Select、@Insert 等
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
+        // 标记mapper加载完成
         loadCompleted = true;
       } finally {
+        // 加载异常，从 knownMappers 移除
         if (!loadCompleted) {
           knownMappers.remove(type);
         }

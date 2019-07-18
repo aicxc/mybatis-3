@@ -57,6 +57,10 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     return mapperMethod.execute(sqlSession, args);
   }
 
+  /**
+   * since Java8
+   * 直接从Map中取，如果不存在，则创建对象添加到Map中然后返回
+   */
   private MapperMethod cachedMapperMethod(Method method) {
     return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
   }

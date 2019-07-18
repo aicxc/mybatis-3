@@ -900,6 +900,7 @@ public class Configuration {
   }
 
   public void addMappers(String packageName) {
+    // 扫描包下的mapper文件，并添加到mapperRegistry中
     mapperRegistry.addMappers(packageName);
   }
 
