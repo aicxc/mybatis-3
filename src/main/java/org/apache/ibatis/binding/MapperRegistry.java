@@ -83,7 +83,7 @@ public class MapperRegistry {
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
-      // 加载结果标记
+      // 标记该接口尚未加载
       boolean loadCompleted = false;
       try {
         // 添加到 knownMappers 中
