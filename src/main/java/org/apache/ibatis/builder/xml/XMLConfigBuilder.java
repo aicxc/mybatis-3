@@ -537,23 +537,33 @@ public class XMLConfigBuilder extends BaseBuilder {
         // <package name="*" /> 扫描包路径下的 mapper 文件
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
+          // 添加到 configuration 中
           configuration.addMappers(mapperPackage);
         } else {
           // 单个mapper文件的处理，resource、url、class三者只能同时存在一个
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+
+          // resource
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
-            // 读取资源文件
+            // 读取资源文件流
             InputStream inputStream = Resources.getResourceAsStream(resource);
+            // XMLMapperBuilder 解析 mapper.xml
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
             mapperParser.parse();
+
+            // url
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
+            // 读取资源文件流
             InputStream inputStream = Resources.getUrlAsStream(url);
+            // XMLMapperBuilder 解析 mapper.xml
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
+
+            // Class 解析原理和 package 相同
           } else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
