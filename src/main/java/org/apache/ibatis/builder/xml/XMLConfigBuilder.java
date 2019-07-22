@@ -434,8 +434,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   /**
-   * 数据库厂商表示，可将databaseId用于 mapper.xml中，根据不同数据库厂商执行不同的SQL
-   * 增强数据库移植性
+   * 可将databaseId用于 mapper.xml中，根据不同数据库厂商执行不同的SQL, 增强数据库移植性
    *
    * @param context 节点
    * @throws Exception 异常

@@ -66,7 +66,7 @@ public class MapperRegistry {
   }
 
   /**
-   * 是否有改Mapper
+   * 是否有这个Mapper
    */
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
@@ -74,7 +74,7 @@ public class MapperRegistry {
 
   /**
    * ★ 添加Mapper接口到 knownMappers
-   *    解析Map普洱接口的注解
+   *    解析Mapper接口的注解
    */
   public <T> void addMapper(Class<T> type) {
     // 接口
@@ -114,6 +114,8 @@ public class MapperRegistry {
   }
 
   /**
+   * 扫描包路径下指定父类的所有子类，并添加到knownMappers中 {@link #knownMappers}
+   *
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
@@ -126,6 +128,8 @@ public class MapperRegistry {
   }
 
   /**
+   * 扫描包路径下的所有类，并添加到knownMappers中 {@link #knownMappers}
+   *
    * @since 3.2.2
    */
   public void addMappers(String packageName) {
