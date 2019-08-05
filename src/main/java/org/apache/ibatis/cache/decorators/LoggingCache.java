@@ -20,13 +20,18 @@ import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
 /**
+ * 为委托 Cache 添加统计命中率功能
+ *
  * @author Clinton Begin
  */
 public class LoggingCache implements Cache {
 
   private final Log log;
+  // 委托Cache
   private final Cache delegate;
+  // 获取Cache次数
   protected int requests = 0;
+  // 命中次数
   protected int hits = 0;
 
   public LoggingCache(Cache delegate) {
@@ -82,6 +87,10 @@ public class LoggingCache implements Cache {
     return delegate.equals(obj);
   }
 
+  /**
+   *
+   * @return 缓存命中率
+   */
   private double getHitRatio() {
     return (double) hits / (double) requests;
   }

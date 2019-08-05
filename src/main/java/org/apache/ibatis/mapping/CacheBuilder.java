@@ -35,18 +35,49 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
+ * 缓存建造者
+ * {@link Cache}
+ *
  * @author Clinton Begin
  */
 public class CacheBuilder {
+  /**
+   * id: namespace
+   */
   private final String id;
+  /**
+   * 负责存储的 Cache 实现类
+   */
   private Class<? extends Cache> implementation;
+  /**
+   * 负责过期策略的 Cache 实现类
+   */
   private final List<Class<? extends Cache>> decorators;
+  /**
+   * 缓存大小
+   */
   private Integer size;
+  /**
+   * 刷新（清空）缓存时间间隔，为0代表不清空缓存
+   */
   private Long clearInterval;
+  /**
+   * 是否序列化
+   */
   private boolean readWrite;
+  /**
+   * Properties 对象
+   */
   private Properties properties;
+  /**
+   * 是否阻塞
+   */
   private boolean blocking;
 
+  /**
+   *
+   * @param id namespace
+   */
   public CacheBuilder(String id) {
     this.id = id;
     this.decorators = new ArrayList<>();
@@ -90,22 +121,33 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    // 设置默认的实现类
     setDefaultImplementations();
+    // 创建缓存
     Cache cache = newBaseCacheInstance(implementation, id);
+    // 设置属性
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
+    // 如果是 PerpetualCache 类，则进行包装
     if (PerpetualCache.class.equals(cache.getClass())) {
       for (Class<? extends Cache> decorator : decorators) {
+        // 创建缓存装饰器
         cache = newCacheDecoratorInstance(decorator, cache);
+        // 设置属性
         setCacheProperties(cache);
       }
+      // 设置标准装饰器
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+      // 将自定义Cache包装成LoggingCache
       cache = new LoggingCache(cache);
     }
     return cache;
   }
 
+  /**
+   * 默认实现
+   */
   private void setDefaultImplementations() {
     if (implementation == null) {
       implementation = PerpetualCache.class;
@@ -204,6 +246,13 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 创建Cache装饰器
+   *
+   * @param cacheClass Cache装饰器Class
+   * @param base 缓存类
+   * @return 装饰器Cache实例
+   */
   private Cache newCacheDecoratorInstance(Class<? extends Cache> cacheClass, Cache base) {
     Constructor<? extends Cache> cacheConstructor = getCacheDecoratorConstructor(cacheClass);
     try {

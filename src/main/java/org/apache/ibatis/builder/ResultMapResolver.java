@@ -22,15 +22,38 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
 
 /**
+ * ResultMap 解析器
+ *
  * @author Eduardo Macarron
  */
 public class ResultMapResolver {
+  /**
+   * 解析助手
+   */
   private final MapperBuilderAssistant assistant;
+  /**
+   * <resultMap /> 节点 id 属性
+   */
   private final String id;
+  /**
+   * <resultMap /> 节点 type 属性
+   */
   private final Class<?> type;
+  /**
+   * <resultMap /> 节点 extend 属性
+   */
   private final String extend;
+  /**
+   * 鉴别器对象
+   */
   private final Discriminator discriminator;
+  /**
+   * ResultMapping 对象集合
+   */
   private final List<ResultMapping> resultMappings;
+  /**
+   * 是否自动映射
+   */
   private final Boolean autoMapping;
 
   public ResultMapResolver(MapperBuilderAssistant assistant, String id, Class<?> type, String extend, Discriminator discriminator, List<ResultMapping> resultMappings, Boolean autoMapping) {

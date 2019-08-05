@@ -32,22 +32,64 @@ import org.apache.ibatis.reflection.ParamNameUtil;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * <resultMap /> 节点解析后的对象
+ *
  * @author Clinton Begin
  */
 public class ResultMap {
+  /**
+   * 全局配置对象
+   */
   private Configuration configuration;
 
+  /**
+   * <resultMap /> id属性
+   */
   private String id;
+  /**
+   * <resultMap /> type属性
+   */
   private Class<?> type;
+  /**
+   * ResultMapping 集合
+   */
   private List<ResultMapping> resultMappings;
+  /**
+   * id ResultMapping 集合
+   */
   private List<ResultMapping> idResultMappings;
+  /**
+   * 构造方法 ResultMapping 集合
+   */
   private List<ResultMapping> constructorResultMappings;
+  /**
+   * 属性 ResultMapping 集合
+   */
   private List<ResultMapping> propertyResultMappings;
+  /**
+   * 映射数据库字段集合
+   */
   private Set<String> mappedColumns;
+  /**
+   * 映射实体类属性集合
+   */
   private Set<String> mappedProperties;
+  /**
+   * 鉴别器
+   */
   private Discriminator discriminator;
+  /**
+   * 是否有内嵌的 resultMap
+   */
   private boolean hasNestedResultMaps;
+  /**
+   * 是否有内嵌查询
+   */
   private boolean hasNestedQueries;
+  /**
+   * 是否自动映射
+   * 设置该属性会覆盖全局配置 autoMappingBehavior
+   */
   private Boolean autoMapping;
 
   private ResultMap() {
@@ -79,16 +121,21 @@ public class ResultMap {
       return resultMap.type;
     }
 
+    /**
+     * 构建 ResultMap 对象
+     */
     public ResultMap build() {
       if (resultMap.id == null) {
         throw new IllegalArgumentException("ResultMaps must have an id");
       }
+      // 初始化各种属性
       resultMap.mappedColumns = new HashSet<>();
       resultMap.mappedProperties = new HashSet<>();
       resultMap.idResultMappings = new ArrayList<>();
       resultMap.constructorResultMappings = new ArrayList<>();
       resultMap.propertyResultMappings = new ArrayList<>();
       final List<String> constructorArgNames = new ArrayList<>();
+      // 根据 ResultMapping 设置 hasNestedQueries | hasNestedResultMaps | mappedColumns | mappedProperties | constructorResultMappings |
       for (ResultMapping resultMapping : resultMap.resultMappings) {
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps || (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
@@ -119,6 +166,7 @@ public class ResultMap {
           resultMap.idResultMappings.add(resultMapping);
         }
       }
+      // 不允许 idResultMappings 为空
       if (resultMap.idResultMappings.isEmpty()) {
         resultMap.idResultMappings.addAll(resultMap.resultMappings);
       }
@@ -146,8 +194,11 @@ public class ResultMap {
     }
 
     private List<String> argNamesOfMatchingConstructor(List<String> constructorArgNames) {
+      // 获取构造方法列表
       Constructor<?>[] constructors = resultMap.type.getDeclaredConstructors();
+      // 遍历
       for (Constructor<?> constructor : constructors) {
+        // 获取构造方法的参数类型
         Class<?>[] paramTypes = constructor.getParameterTypes();
         if (constructorArgNames.size() == paramTypes.length) {
           List<String> paramNames = getArgNames(constructor);
@@ -179,6 +230,12 @@ public class ResultMap {
       return true;
     }
 
+    /**
+     *
+     *
+     * @param constructor 构造方法
+     * @return 构造方法参数命名列表
+     */
     private List<String> getArgNames(Constructor<?> constructor) {
       List<String> paramNames = new ArrayList<>();
       List<String> actualParamNames = null;
@@ -192,6 +249,7 @@ public class ResultMap {
             break;
           }
         }
+        // 是否使用实际参数名 3.4.2版本后默认为 true
         if (name == null && resultMap.configuration.isUseActualParamName()) {
           if (actualParamNames == null) {
             actualParamNames = ParamNameUtil.getParamNames(constructor);

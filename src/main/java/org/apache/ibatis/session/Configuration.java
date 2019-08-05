@@ -928,6 +928,7 @@ public class Configuration {
   }
 
   public void addCacheRef(String namespace, String referencedNamespace) {
+    // 将映射关系添加到 cacheRefMap
     cacheRefMap.put(namespace, referencedNamespace);
   }
 

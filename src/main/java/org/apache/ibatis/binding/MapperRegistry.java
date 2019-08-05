@@ -86,14 +86,15 @@ public class MapperRegistry {
       // 标记该接口尚未加载
       boolean loadCompleted = false;
       try {
-        // 添加到 knownMappers 中
+        // 将接口以及接口代理工厂添加到 knownMappers 中
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
 
-        // 主要用来解析 Mapper 接口中的注解，如 @Select、@Insert 等
+        // 创建MapperAnnotationBuilder对象
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        // 主要解析接口以及接口方法上的注解 & 根据接口获取对应的xml文件进行解析
         parser.parse();
         // 标记mapper加载完成
         loadCompleted = true;

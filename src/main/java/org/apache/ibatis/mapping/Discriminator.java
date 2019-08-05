@@ -21,11 +21,27 @@ import java.util.Map;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 鉴别器
+ *
+ * <discriminator javaType="int" column="vehicle_type">
+ *     <case value="1" resultMap="carResult" />
+ *     <case value="2" resultMap="truckResult" />
+ *     <case value="3" resultMap="vanResult" />
+ *     <case value="4" resultMap="suvResult" />
+*  </discriminator>
+ *
  * @author Clinton Begin
  */
 public class Discriminator {
 
+  /**
+   * 鉴别器<discriminatorMap />节点对应的 ResultMapping 对象
+   */
   private ResultMapping resultMapping;
+  /**
+   * key:   case中的 value 属性
+   * value: case中的 resultMap 属性
+   */
   private Map<String, String> discriminatorMap;
 
   Discriminator() {
@@ -43,7 +59,7 @@ public class Discriminator {
       assert discriminator.resultMapping != null;
       assert discriminator.discriminatorMap != null;
       assert !discriminator.discriminatorMap.isEmpty();
-      //lock down map
+      //lock down map  锁定集合，避免被修改
       discriminator.discriminatorMap = Collections.unmodifiableMap(discriminator.discriminatorMap);
       return discriminator;
     }
@@ -57,6 +73,9 @@ public class Discriminator {
     return discriminatorMap;
   }
 
+  /**
+   * 根据 value 获取 resultMap ID
+   */
   public String getMapIdFor(String s) {
     return discriminatorMap.get(s);
   }

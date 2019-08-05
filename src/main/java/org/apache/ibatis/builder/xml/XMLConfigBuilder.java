@@ -255,7 +255,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   /**
-   * 解析 <plugins /> 节点， 添加到 {@link Configuration#interceptorChain}
+   * 解析 <plugins /> 节点， 添加到 {@link Configuration #interceptorChain}
    *
    * @param parent 节点
    * @throws Exception 异常
