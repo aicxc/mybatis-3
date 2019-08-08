@@ -50,6 +50,10 @@ public class PropertyParser {
     // Prevent Instantiation
   }
 
+  /**
+   * 如果string是${}类型，则从properties中找到映射值替换，否则直接返回string
+   *
+   */
   public static String parse(String string, Properties variables) {
     VariableTokenHandler handler = new VariableTokenHandler(variables);
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);

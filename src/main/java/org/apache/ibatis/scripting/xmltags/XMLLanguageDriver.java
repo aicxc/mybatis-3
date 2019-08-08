@@ -29,16 +29,23 @@ import org.apache.ibatis.scripting.defaults.RawSqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * XML 语言驱动实现类
  * @author Eduardo Macarron
  */
 public class XMLLanguageDriver implements LanguageDriver {
 
   @Override
+  /**
+   * 默认使用 {@link DefaultParameterHandler}
+   */
   public ParameterHandler createParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 
   @Override
+  /**
+   * 创建 XMLScriptBuilder 对象，执行解析 {@link XMLScriptBuilder#parseScriptNode()}
+   */
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
     XMLScriptBuilder builder = new XMLScriptBuilder(configuration, script, parameterType);
     return builder.parseScriptNode();
@@ -47,16 +54,23 @@ public class XMLLanguageDriver implements LanguageDriver {
   @Override
   public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
     // issue #3
+    // 如果是 <script> 开头
     if (script.startsWith("<script>")) {
+      // 解析 <script> 节点成 XNode 对象，再执行 createSqlSource(...)
       XPathParser parser = new XPathParser(script, false, configuration.getVariables(), new XMLMapperEntityResolver());
+      // 创建 SqlSource 对象
       return createSqlSource(configuration, parser.evalNode("/script"), parameterType);
     } else {
       // issue #127
+      // 变量替换
       script = PropertyParser.parse(script, configuration.getVariables());
+      // 创建 TextSqlNode 对象
       TextSqlNode textSqlNode = new TextSqlNode(script);
+      // 如果包含 ${} 则是动态SQL，创建DynamicSqlSource
       if (textSqlNode.isDynamic()) {
         return new DynamicSqlSource(configuration, textSqlNode);
       } else {
+        // 创建 RawSqlSource
         return new RawSqlSource(configuration, script, parameterType);
       }
     }
