@@ -21,6 +21,8 @@ import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 
 /**
+ * 不需要生成主键的 KeyGenerator
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */

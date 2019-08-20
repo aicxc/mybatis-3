@@ -35,6 +35,7 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * mapper.xml 构建器，主要解析 <select /> <insert /> <update /> <delete /> 节点
+ * 解析成 MappedStatement 对象，并添加到 Configuration 中
  *
  * @author Clinton Begin
  */
@@ -105,23 +106,30 @@ public class XMLStatementBuilder extends BaseBuilder {
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // Parse selectKey after includes and remove them.
-    // 解析 <selectKey /> 节点
+    // 解析 <selectKey /> 节点，一个 <selectKey /> 节点也是一个 MappedStatement
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
 
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
     KeyGenerator keyGenerator;
     String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
     keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, true);
+    // 获取刚才创建的 KeyGenerator
     if (configuration.hasKeyGenerator(keyStatementId)) {
+      // SelectKeyGenerator
       keyGenerator = configuration.getKeyGenerator(keyStatementId);
     } else {
+      // 获取默认的 KeyGenerator   useGeneratedKeys: 默认false
+      // 如果useGeneratedKeys=true并且是insert语句，则keyGenerator=Jdbc3KeyGenerator,否则为NoKeyGenerator
       keyGenerator = context.getBooleanAttribute("useGeneratedKeys",
           configuration.isUseGeneratedKeys() && SqlCommandType.INSERT.equals(sqlCommandType))
           ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
     }
 
+    // 创建 SqlSource 对象
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+    // 获取StatementType 默认：PREPARED
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
+    // 获取属性
     Integer fetchSize = context.getIntAttribute("fetchSize");
     Integer timeout = context.getIntAttribute("timeout");
     String parameterMap = context.getStringAttribute("parameterMap");
@@ -134,6 +142,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String keyColumn = context.getStringAttribute("keyColumn");
     String resultSets = context.getStringAttribute("resultSets");
 
+    // 创建 MappedStatement 并添加到全局配置对象 configuration 中
     builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
         fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
         resultSetTypeEnum, flushCache, useCache, resultOrdered,
@@ -221,12 +230,18 @@ public class XMLStatementBuilder extends BaseBuilder {
     configuration.addKeyGenerator(id, new SelectKeyGenerator(keyStatement, executeBefore));
   }
 
+  /**
+   * 移除 <selectKey /> 节点
+   */
   private void removeSelectKeyNodes(List<XNode> selectKeyNodes) {
     for (XNode nodeToHandle : selectKeyNodes) {
       nodeToHandle.getParent().getNode().removeChild(nodeToHandle.getNode());
     }
   }
 
+  /**
+   * databaseId 匹配
+   */
   private boolean databaseIdMatchesCurrent(String id, String databaseId, String requiredDatabaseId) {
     if (requiredDatabaseId != null) {
       return requiredDatabaseId.equals(databaseId);
